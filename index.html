@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cryptography Lab Calculator</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --text: #0f172a;
+      --muted: #64748b;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --result-bg: #f1f5f9;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-family);
+      line-height: 1.5;
+      padding: 32px 16px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 640px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 28px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .header {
+      text-align: center;
+      padding-bottom: 20px;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 24px;
+    }
+
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .meta-info {
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-family: var(--font-mono);
+    }
+
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 0.875rem;
+      font-family: var(--font-mono);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--text);
+      resize: vertical;
+      word-break: break-all;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .grid-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 16px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background-color: #ffffff;
+      color: var(--text);
+      transition: all 0.15s ease-in-out;
+    }
+
+    .btn:hover {
+      background-color: #f8fafc;
+      border-color: #94a3b8;
+    }
+
+    .btn-op.active {
+      background-color: var(--primary);
+      border-color: var(--primary);
+      color: #ffffff;
+    }
+
+    .section-divider {
+      border: 0;
+      height: 1px;
+      background: var(--border);
+      margin: 24px 0;
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    .result-container {
+      background: var(--result-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      min-height: 90px;
+      word-break: break-all;
+    }
+
+    .result-item {
+      margin-bottom: 12px;
+    }
+
+    .result-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .result-key {
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 4px;
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .result-val {
+      color: var(--text);
+      background: #ffffff;
+      padding: 8px 12px;
+      border-radius: 4px;
+      border: 1px solid #e2e8f0;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+
+    .placeholder-text {
+      color: var(--muted);
+      font-style: italic;
+      font-family: var(--font-family);
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>Cryptography Lab Calculator</h1>
+  </div>
+
+  <!-- Inputs -->
+  <div class="form-group">
+    <div class="label-row">
+      <label for="num1">First Number</label>
+      <span class="meta-info" id="num1-digits"></span>
+    </div>
+    <textarea id="num1" rows="2" placeholder="Enter first positive integer"></textarea>
+  </div>
+
+  <div class="form-group">
+    <div class="label-row">
+      <label for="num2">Second Number</label>
+      <span class="meta-info" id="num2-digits"></span>
+    </div>
+    <textarea id="num2" rows="2" placeholder="Enter second positive integer"></textarea>
+  </div>
+
+  <!-- Operation Buttons -->
+  <div class="grid-buttons">
+    <button type="button" class="btn btn-op" data-op="add" onclick="executeOperation('add')">Addition</button>
+    <button type="button" class="btn btn-op" data-op="sub" onclick="executeOperation('sub')">Subtraction</button>
+    <button type="button" class="btn btn-op" data-op="mul" onclick="executeOperation('mul')">Multiplication</button>
+    <button type="button" class="btn btn-op" data-op="div" onclick="executeOperation('div')">Division</button>
+    <button type="button" class="btn btn-op" data-op="gcd" onclick="executeOperation('gcd')">GCD</button>
+    <button type="button" class="btn btn-op" data-op="extgcd" onclick="executeOperation('extgcd')">Extended GCD</button>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- Result Section -->
+  <div class="section-title">Result</div>
+  <div class="result-container" id="resultDisplay">
+    <span class="placeholder-text">Enter two numbers and click any operation above to compute the result.</span>
+  </div>
+</div>
+
+<script>
+  // ================================================================
+  // LARGE INTEGER ARITHMETIC ALGORITHMS (STRING-BASED)
+  // ================================================================
+
+  function clean(a) {
+    let i = 0;
+    while (i < a.length - 1 && a[i] === '0') {
+      i++;
+    }
+    return a.substring(i);
+  }
+
+  function cmp(a, b) {
+    a = clean(a);
+    b = clean(b);
+    if (a.length > b.length) return 1;
+    if (a.length < b.length) return -1;
+    if (a > b) return 1;
+    if (a < b) return -1;
+    return 0;
+  }
+
+  function add(a, b) {
+    let ans = [];
+    let i = a.length - 1;
+    let j = b.length - 1;
+    let carry = 0;
+
+    while (i >= 0 || j >= 0 || carry > 0) {
+      let x = 0;
+      let y = 0;
+      if (i >= 0) x = a.charCodeAt(i--) - 48;
+      if (j >= 0) y = b.charCodeAt(j--) - 48;
+
+      let sum = x + y + carry;
+      ans.push(String.fromCharCode(48 + (sum % 10)));
+      carry = Math.floor(sum / 10);
+    }
+
+    ans.reverse();
+    return clean(ans.join(''));
+  }
+
+  function sub(a, b) {
+    let ans = [];
+    let i = a.length - 1;
+    let j = b.length - 1;
+    let borrow = 0;
+
+    while (i >= 0) {
+      let x = (a.charCodeAt(i) - 48) - borrow;
+      let y = 0;
+      if (j >= 0) y = b.charCodeAt(j--) - 48;
+
+      if (x < y) {
+        x += 10;
+        borrow = 1;
+      } else {
+        borrow = 0;
+      }
+
+      ans.push(String.fromCharCode(48 + (x - y)));
+      i--;
+    }
+
+    ans.reverse();
+    return clean(ans.join(''));
+  }
+
+  function multiply(a, b) {
+    let ans = "0";
+    let current = a;
+    let multiplier = b;
+
+    while (multiplier !== "0") {
+      let last = multiplier[multiplier.length - 1];
+      let odd = (last === '1' || last === '3' || last === '5' || last === '7' || last === '9');
+
+      if (odd) {
+        ans = add(ans, current);
+      }
+
+      current = add(current, current);
+
+      let quotient = [];
+      let carry = 0;
+      for (let k = 0; k < multiplier.length; k++) {
+        let num = carry * 10 + (multiplier.charCodeAt(k) - 48);
+        quotient.push(String.fromCharCode(48 + Math.floor(num / 2)));
+        carry = num % 2;
+      }
+      multiplier = clean(quotient.join(''));
+    }
+
+    return clean(ans);
+  }
+
+  function divide(a, b) {
+    a = clean(a);
+    b = clean(b);
+
+    let quotient = [];
+    let remainder = "0";
+
+    for (let k = 0; k < a.length; k++) {
+      let digit = a[k];
+      if (remainder === "0") {
+        remainder = digit;
+      } else {
+        remainder += digit;
+      }
+      remainder = clean(remainder);
+
+      let count = 0;
+      let temp = "0";
+      while (count < 10) {
+        let next = add(temp, b);
+        if (cmp(next, remainder) > 0) break;
+        temp = next;
+        count++;
+      }
+
+      quotient.push(String.fromCharCode(48 + count));
+      remainder = sub(remainder, temp);
+    }
+
+    return {
+      quotient: clean(quotient.join('')),
+      remainder: clean(remainder)
+    };
+  }
+
+  function gcd(a, b) {
+    while (b !== "0") {
+      let r = divide(a, b).remainder;
+      a = b;
+      b = r;
+    }
+    return a;
+  }
+
+  // Signed numbers for Extended Euclidean GCD
+  function negateSigned(a) {
+    if (a.n !== "0") {
+      return { n: a.n, negative: !a.negative };
+    }
+    return a;
+  }
+
+  function addSigned(a, b) {
+    if (a.negative === b.negative) {
+      return { n: add(a.n, b.n), negative: a.negative };
+    }
+    if (cmp(a.n, b.n) >= 0) {
+      return { n: sub(a.n, b.n), negative: a.negative };
+    }
+    return { n: sub(b.n, a.n), negative: b.negative };
+  }
+
+  function subSigned(a, b) {
+    return addSigned(a, negateSigned(b));
+  }
+
+  function multiplySigned(a, b) {
+    let ans = "0";
+    let current = a.n;
+    let multiplier = b;
+
+    while (multiplier !== "0") {
+      let last = multiplier[multiplier.length - 1];
+      let odd = (last === '1' || last === '3' || last === '5' || last === '7' || last === '9');
+
+      if (odd) ans = add(ans, current);
+      current = add(current, current);
+
+      let quotient = [];
+      let carry = 0;
+      for (let k = 0; k < multiplier.length; k++) {
+        let num = carry * 10 + (multiplier.charCodeAt(k) - 48);
+        quotient.push(String.fromCharCode(48 + Math.floor(num / 2)));
+        carry = num % 2;
+      }
+      multiplier = clean(quotient.join(''));
+    }
+
+    return { n: clean(ans), negative: a.negative };
+  }
+
+  function formatSigned(a) {
+    if (a.negative && a.n !== "0") {
+      return "-" + a.n;
+    }
+    return a.n;
+  }
+
+  function extendedGCD(a, b) {
+    let r1 = a;
+    let r2 = b;
+
+    let x1 = { n: "1", negative: false };
+    let x2 = { n: "0", negative: false };
+
+    let y1 = { n: "0", negative: false };
+    let y2 = { n: "1", negative: false };
+
+    while (r2 !== "0") {
+      let d = divide(r1, r2);
+      let q = d.quotient;
+      let remainder = d.remainder;
+
+      let nx = subSigned(x1, multiplySigned(x2, q));
+      let ny = subSigned(y1, multiplySigned(y2, q));
+
+      r1 = r2;
+      r2 = remainder;
+
+      x1 = x2;
+      x2 = nx;
+
+      y1 = y2;
+      y2 = ny;
+    }
+
+    return {
+      gcd: r1,
+      x: x1,
+      y: y1
+    };
+  }
+
+  // ================================================================
+  // UI HANDLERS
+  // ================================================================
+
+  let currentOp = "add";
+
+  const num1Input = document.getElementById("num1");
+  const num2Input = document.getElementById("num2");
+  const num1Digits = document.getElementById("num1-digits");
+  const num2Digits = document.getElementById("num2-digits");
+  const resultDisplay = document.getElementById("resultDisplay");
+
+  function updateDigitCounts() {
+    const val1 = num1Input.value.replace(/[^0-9]/g, "");
+    const val2 = num2Input.value.replace(/[^0-9]/g, "");
+    num1Digits.textContent = val1.length > 0 ? `${val1.length} digits` : "";
+    num2Digits.textContent = val2.length > 0 ? `${val2.length} digits` : "";
+  }
+
+  num1Input.addEventListener("input", updateDigitCounts);
+  num2Input.addEventListener("input", updateDigitCounts);
+
+  function executeOperation(op) {
+    currentOp = op;
+
+    document.querySelectorAll(".btn-op").forEach(btn => {
+      btn.classList.toggle("active", btn.getAttribute("data-op") === op);
+    });
+
+    let a = num1Input.value.trim().replace(/[^0-9]/g, "");
+    let b = num2Input.value.trim().replace(/[^0-9]/g, "");
+
+    if (!a || !b) {
+      resultDisplay.innerHTML = '<span class="placeholder-text" style="color: #dc2626;">Please enter both First Number and Second Number.</span>';
+      return;
+    }
+
+    a = clean(a);
+    b = clean(b);
+
+    // Addition
+    if (op === "add") {
+      const res = add(a, b);
+      resultDisplay.innerHTML = `
+        <div class="result-item">
+          <span class="result-key">Result</span>
+          <div class="result-val">${res}</div>
+        </div>`;
+    }
+    // Subtraction
+    else if (op === "sub") {
+      if (cmp(a, b) < 0) {
+        resultDisplay.innerHTML = `
+          <div class="result-item">
+            <span class="result-key" style="color: #dc2626;">Error</span>
+            <div class="result-val" style="color: #dc2626; border-color: #fca5a5;">For subtraction, First Number must be greater than or equal to Second Number (a &ge; b).</div>
+          </div>`;
+      } else {
+        const res = sub(a, b);
+        resultDisplay.innerHTML = `
+          <div class="result-item">
+            <span class="result-key">Result</span>
+            <div class="result-val">${res}</div>
+          </div>`;
+      }
+    }
+    // Multiplication
+    else if (op === "mul") {
+      const res = multiply(a, b);
+      resultDisplay.innerHTML = `
+        <div class="result-item">
+          <span class="result-key">Result</span>
+          <div class="result-val">${res}</div>
+        </div>`;
+    }
+    // Division
+    else if (op === "div") {
+      if (b === "0") {
+        resultDisplay.innerHTML = `
+          <div class="result-item">
+            <span class="result-key" style="color: #dc2626;">Error</span>
+            <div class="result-val" style="color: #dc2626; border-color: #fca5a5;">Division by zero is not allowed.</div>
+          </div>`;
+      } else {
+        const res = divide(a, b);
+        resultDisplay.innerHTML = `
+          <div class="result-item">
+            <span class="result-key">Quotient</span>
+            <div class="result-val">${res.quotient}</div>
+          </div>
+          <div class="result-item">
+            <span class="result-key">Remainder</span>
+            <div class="result-val">${res.remainder}</div>
+          </div>`;
+      }
+    }
+    // GCD
+    else if (op === "gcd") {
+      const res = gcd(a, b);
+      resultDisplay.innerHTML = `
+        <div class="result-item">
+          <span class="result-key">GCD</span>
+          <div class="result-val">${res}</div>
+        </div>`;
+    }
+    // Extended GCD
+    else if (op === "extgcd") {
+      const res = extendedGCD(a, b);
+      resultDisplay.innerHTML = `
+        <div class="result-item">
+          <span class="result-key">GCD</span>
+          <div class="result-val">${res.gcd}</div>
+        </div>
+        <div class="result-item">
+          <span class="result-key">x</span>
+          <div class="result-val">${formatSigned(res.x)}</div>
+        </div>
+        <div class="result-item">
+          <span class="result-key">y</span>
+          <div class="result-val">${formatSigned(res.y)}</div>
+        </div>`;
+    }
+  }
+</script>
+
+</body>
+</html>
