@@ -277,15 +277,6 @@
     <input type="text" id="modulus" placeholder="Enter modulus m (e.g. 7 or 11)">
   </div>
 
-  <!-- Steps Toggle -->
-  <div class="options-row">
-    <label class="checkbox-label">
-      <input type="checkbox" id="showStepsToggle">
-      Show calculation steps (like C++ Show steps y/n)
-    </label>
-    <span style="font-size: 0.75rem; color: var(--muted);">Traces each mathematical step</span>
-  </div>
-
   <!-- Operation Buttons -->
   <div class="btn-group-label">Core Lab Operations (C++ Match)</div>
   <div class="grid-buttons-3">
@@ -663,7 +654,6 @@
   const num1Input = document.getElementById("num1");
   const num2Input = document.getElementById("num2");
   const modInput = document.getElementById("modulus");
-  const showStepsToggle = document.getElementById("showStepsToggle");
   const num1Digits = document.getElementById("num1-digits");
   const num2Digits = document.getElementById("num2-digits");
   const modDigits = document.getElementById("mod-digits");
@@ -699,8 +689,7 @@
     let rawB = sanitizeSignedInput(num2Input.value);
     let rawM = sanitizeSignedInput(modInput.value);
 
-    let wantSteps = showStepsToggle.checked;
-    let log = wantSteps ? [] : null;
+    let log = null;
 
     try {
       // 1. GCD
@@ -796,21 +785,12 @@
   }
 
   function renderResult(label, val, log = null) {
-    let stepsHtml = "";
-    if (log && log.length > 0) {
-      stepsHtml = `
-        <div style="margin-top: 10px;">
-          <span class="result-key">Intermediate Steps (Show Steps):</span>
-          <div class="steps-box">${log.join('\n')}</div>
-        </div>`;
-    }
-
     resultDisplay.innerHTML = `
       <div class="result-item">
         <span class="result-key">${label}</span>
         <div class="result-val">${val}</div>
       </div>
-      ${stepsHtml}`;
+      `;
   }
 
   function renderMultiResult(items, log = null) {
@@ -821,16 +801,7 @@
       </div>
     `).join('');
 
-    let stepsHtml = "";
-    if (log && log.length > 0) {
-      stepsHtml = `
-        <div style="margin-top: 10px;">
-          <span class="result-key">Intermediate Steps (Show Steps):</span>
-          <div class="steps-box">${log.join('\n')}</div>
-        </div>`;
-    }
-
-    resultDisplay.innerHTML = itemsHtml + stepsHtml;
+    resultDisplay.innerHTML = itemsHtml;
   }
 </script>
 
