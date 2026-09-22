@@ -4,69 +4,65 @@
 using namespace std;
 
 // Remove leading zeros
-string clean(string a)
+string clean(string s)
 {
     int i = 0;
 
-    while (i < (int)a.size() - 1 && a[i] == '0')
+    while (i + 1 < s.size() && s[i] == '0')
         i++;
 
-    return a.substr(i);
+    return s.substr(i);
 }
 
+// --------------------------------------------------
 // Compare two positive numbers
-// 1  -> a > b
-// 0  -> a == b
-// -1 -> a < b
-int cmp(string a, string b)
+// returns 1 if a>b, 0 if equal, -1 if a<b
+// --------------------------------------------------
+int compare(string a, string b)
 {
     a = clean(a);
     b = clean(b);
 
-    if (a.size() > b.size())
-        return 1;
+    if (a.size() != b.size())
+        return a.size() > b.size() ? 1 : -1;
 
-    if (a.size() < b.size())
-        return -1;
+    if (a == b)
+        return 0;
 
-    if (a > b)
-        return 1;
-
-    if (a < b)
-        return -1;
-
-    return 0;
+    return a > b ? 1 : -1;
 }
 
 // --------------------------------------------------
-// ADDITION
+// Positive addition
+//
+// Example:
+// 456 + 78
+//
+// 456
+// +078
+// ----
+// 534
 // --------------------------------------------------
-
 string add(string a, string b)
 {
-    string ans = "";
-
-    int i = (int)a.size() - 1;
-    int j = (int)b.size() - 1;
-
+    int i = a.size() - 1;
+    int j = b.size() - 1;
     int carry = 0;
+
+    string ans = "";
 
     while (i >= 0 || j >= 0 || carry)
     {
-        int x = 0;
-        int y = 0;
-
-        if (i >= 0)
-            x = a[i--] - '0';
-
-        if (j >= 0)
-            y = b[j--] - '0';
+        int x = (i >= 0) ? a[i] - '0' : 0;
+        int y = (j >= 0) ? b[j] - '0' : 0;
 
         int sum = x + y + carry;
 
         ans += char('0' + sum % 10);
-
         carry = sum / 10;
+
+        i--;
+        j--;
     }
 
     reverse(ans.begin(), ans.end());
@@ -75,26 +71,29 @@ string add(string a, string b)
 }
 
 // --------------------------------------------------
-// SUBTRACTION
+// Positive subtraction
 // Assumption: a >= b
+//
+// Example:
+// 123 - 58
+//
+// 123
+// -58
+// ---
+// 65
 // --------------------------------------------------
-
 string sub(string a, string b)
 {
-    string ans = "";
-
-    int i = (int)a.size() - 1;
-    int j = (int)b.size() - 1;
-
+    int i = a.size() - 1;
+    int j = b.size() - 1;
     int borrow = 0;
+
+    string ans = "";
 
     while (i >= 0)
     {
-        int x = (a[i] - '0') - borrow;
-        int y = 0;
-
-        if (j >= 0)
-            y = b[j--] - '0';
+        int x = a[i] - '0' - borrow;
+        int y = (j >= 0) ? b[j] - '0' : 0;
 
         if (x < y)
         {
@@ -106,9 +105,10 @@ string sub(string a, string b)
             borrow = 0;
         }
 
-        ans += char('0' + (x - y));
+        ans += char('0' + x - y);
 
         i--;
+        j--;
     }
 
     reverse(ans.begin(), ans.end());
@@ -117,432 +117,720 @@ string sub(string a, string b)
 }
 
 // --------------------------------------------------
-// MULTIPLICATION
+// Division by 2
+// returns quotient and remainder
 // --------------------------------------------------
+pair<string, int> div2(string a)
+{
+    string q = "";
+    int carry = 0;
 
-string multiply(string a, string b)
+    for (char c : a)
+    {
+        int x = carry * 10 + (c - '0');
+
+        q += char('0' + x / 2);
+
+        carry = x % 2;
+    }
+
+    return {clean(q), carry};
+}
+
+// --------------------------------------------------
+// Positive multiplication
+//
+// Example:
+// 13 * 6
+//
+// 6 is even  -> current = 26
+// 3 is odd   -> answer = 26
+// 1 is odd   -> answer = 78
+//
+// Result = 78
+// --------------------------------------------------
+string multiply(string a, string b, bool show = false)
 {
     string ans = "0";
-
-    // current = a, then a*2, a*4, a*8...
-    string current = a;
-
-    // multiplier = b, then b/2, b/4...
-    string multiplier = b;
+    string current = clean(a);
+    string multiplier = clean(b);
 
     while (multiplier != "0")
     {
-        // Check if multiplier is odd
-        char last = multiplier.back();
+        auto p = div2(multiplier);
 
-        bool odd =
-            last == '1' ||
-            last == '3' ||
-            last == '5' ||
-            last == '7' ||
-            last == '9';
-
-        // If odd, add current to answer
-        if (odd)
-            ans = add(ans, current);
-
-        // current = current * 2
-        current = add(current, current);
-
-        // multiplier = multiplier / 2
-        string quotient = "";
-        int carry = 0;
-
-        for (char c : multiplier)
+        if (show)
         {
-            int num = carry * 10 + (c - '0');
-
-            quotient += char('0' + num / 2);
-
-            carry = num % 2;
+            cout << "Current = " << current
+                 << ", Multiplier = " << multiplier;
         }
 
-        multiplier = clean(quotient);
+        if (p.second == 1)
+        {
+            ans = add(ans, current);
+
+            if (show)
+                cout << " -> add current, Answer = " << ans;
+        }
+
+        cout << (show ? "\n" : "");
+
+        current = add(current, current);
+        multiplier = p.first;
     }
 
     return clean(ans);
 }
 
 // --------------------------------------------------
-// DIVISION
-// Returns:
-// first  = quotient
-// second = remainder
+// Positive division
+//
+// Example:
+// 157 / 12
+//
+// 15 -> 1, remainder 3
+// 37 -> 3, remainder 1
+//
+// quotient = 13
+// remainder = 1
 // --------------------------------------------------
+pair<string, string> dividePositive(
+    string a,
+    string b,
+    bool show = false)
+{
+    string quotient = "";
+    string remainder = "0";
 
-pair<string, string> divide(string a, string b)
+    for (char c : a)
+    {
+        if (remainder == "0")
+            remainder = string(1, c);
+        else
+            remainder += c;
+
+        remainder = clean(remainder);
+
+        int q = 0;
+
+        while (compare(remainder, b) >= 0)
+        {
+            remainder = sub(remainder, b);
+            q++;
+        }
+
+        quotient += char('0' + q);
+
+        if (show)
+        {
+            cout << "Digit " << c
+                 << " -> quotient digit = " << q
+                 << ", remainder = " << remainder << "\n";
+        }
+    }
+
+    return {clean(quotient), clean(remainder)};
+}
+
+// --------------------------------------------------
+// GCD
+//
+// Example:
+// 48 = 18*2 + 12
+// 18 = 12*1 + 6
+// 12 = 6*2 + 0
+//
+// GCD = 6
+// --------------------------------------------------
+string gcd(string a, string b, bool show = false)
 {
     a = clean(a);
     b = clean(b);
 
-    string quotient = "";
-    string remainder = "0";
-
-    for (char digit : a)
-    {
-        // Bring down next digit
-        if (remainder == "0")
-            remainder = string(1, digit);
-        else
-            remainder += digit;
-
-        remainder = clean(remainder);
-
-        // Find one quotient digit
-        int count = 0;
-        string temp = "0";
-
-        while (count < 10)
-        {
-            string next = add(temp, b);
-
-            if (cmp(next, remainder) > 0)
-                break;
-
-            temp = next;
-            count++;
-        }
-
-        quotient += char('0' + count);
-
-        // remainder = remainder - temp
-        remainder = sub(remainder, temp);
-    }
-
-    return {
-        clean(quotient),
-        clean(remainder)
-    };
-}
-
-// --------------------------------------------------
-// EUCLIDEAN GCD
-// --------------------------------------------------
-
-string gcd(string a, string b)
-{
     while (b != "0")
     {
-        string r = divide(a, b).second;
+        auto d = dividePositive(a, b);
+
+        if (show)
+        {
+            cout << a << " = "
+                 << b << " * "
+                 << d.first << " + "
+                 << d.second << "\n";
+        }
 
         a = b;
-        b = r;
+        b = d.second;
     }
 
     return a;
 }
 
 // --------------------------------------------------
-// SIGNED NUMBER
+// Signed number
 // --------------------------------------------------
-
-struct Signed
+struct Big
 {
-    string n;
-    bool negative;
+    string num;
+    bool neg;
 };
 
-// Change sign
-Signed negateSigned(Signed a)
+Big makeBig(string s)
 {
-    if (a.n != "0")
-        a.negative = !a.negative;
+    bool neg = false;
+
+    if (s[0] == '-')
+    {
+        neg = true;
+        s = s.substr(1);
+    }
+
+    s = clean(s);
+
+    if (s == "0")
+        neg = false;
+
+    return {s, neg};
+}
+
+string printBig(Big a)
+{
+    if (a.neg && a.num != "0")
+        return "-" + a.num;
+
+    return a.num;
+}
+
+// --------------------------------------------------
+// Signed addition
+// --------------------------------------------------
+Big addBig(Big a, Big b)
+{
+    if (a.neg == b.neg)
+    {
+        return makeBig(
+            (a.neg ? "-" : "") +
+            add(a.num, b.num)
+        );
+    }
+
+    int c = compare(a.num, b.num);
+
+    if (c == 0)
+        return makeBig("0");
+
+    if (c > 0)
+    {
+        return makeBig(
+            (a.neg ? "-" : "") +
+            sub(a.num, b.num)
+        );
+    }
+
+    return makeBig(
+        (b.neg ? "-" : "") +
+        sub(b.num, a.num)
+    );
+}
+
+Big negateBig(Big a)
+{
+    if (a.num != "0")
+        a.neg = !a.neg;
 
     return a;
 }
 
-// Add signed numbers
-Signed addSigned(Signed a, Signed b)
+Big subBig(Big a, Big b)
 {
-    // Same signs
-    if (a.negative == b.negative)
-    {
-        return {
-            add(a.n, b.n),
-            a.negative
-        };
-    }
+    return addBig(a, negateBig(b));
+}
 
-    // Different signs
-    if (cmp(a.n, b.n) >= 0)
-    {
-        return {
-            sub(a.n, b.n),
-            a.negative
-        };
-    }
+// --------------------------------------------------
+// Signed multiplication
+// --------------------------------------------------
+Big multiplyBig(Big a, Big b, bool show = false)
+{
+    string result = multiply(a.num, b.num, show);
+
+    bool neg = a.neg ^ b.neg;
+
+    if (result == "0")
+        neg = false;
+
+    return makeBig(
+        (neg ? "-" : "") + result
+    );
+}
+
+// --------------------------------------------------
+// Signed division
+// --------------------------------------------------
+pair<Big, Big> divideBig(Big a, Big b, bool show = false)
+{
+    if (b.num == "0")
+        throw runtime_error("Division by zero");
+
+    auto d = dividePositive(a.num, b.num, show);
+
+    bool qneg = a.neg ^ b.neg;
+    bool rneg = a.neg;
+
+    if (d.first == "0")
+        qneg = false;
+
+    if (d.second == "0")
+        rneg = false;
 
     return {
-        sub(b.n, a.n),
-        b.negative
+        makeBig((qneg ? "-" : "") + d.first),
+        makeBig((rneg ? "-" : "") + d.second)
     };
 }
 
-// Subtract signed numbers
-// a - b = a + (-b)
-Signed subSigned(Signed a, Signed b)
+// --------------------------------------------------
+// Modulo
+// Result is between 0 and m-1
+// --------------------------------------------------
+Big modBig(Big a, Big m)
 {
-    return addSigned(a, negateSigned(b));
+    if (m.num == "0")
+        throw runtime_error("Modulo by zero");
+
+    m.neg = false;
+
+    auto d = divideBig(a, m);
+
+    Big r = d.second;
+
+    if (r.neg)
+    {
+        r.neg = false;
+        r = subBig(m, r);
+    }
+
+    return r;
 }
 
-// Multiply signed number by positive number
-Signed multiplySigned(Signed a, string b)
+// --------------------------------------------------
+// Extended GCD
+//
+// Finds:
+// ax + by = gcd(a,b)
+//
+// Example:
+// 56 = 15*3 + 11
+// 15 = 11*1 + 4
+// 11 = 4*2 + 3
+// 4  = 3*1 + 1
+//
+// Result:
+// x = -4
+// y = 15
+// gcd = 1
+// --------------------------------------------------
+struct Extended
 {
-    string ans = "0";
-    string current = a.n;
-    string multiplier = b;
+    string g;
+    Big x;
+    Big y;
+};
+
+Extended extendedGCD(Big A, Big B, bool show = false)
+{
+    string r0 = A.num;
+    string r1 = B.num;
+
+    Big x0 = makeBig("1");
+    Big x1 = makeBig("0");
+
+    Big y0 = makeBig("0");
+    Big y1 = makeBig("1");
+
+    while (r1 != "0")
+    {
+        auto d = dividePositive(r0, r1);
+
+        string q = d.first;
+
+        if (show)
+        {
+            cout << r0 << " = "
+                 << r1 << " * "
+                 << q << " + "
+                 << d.second << "\n";
+        }
+
+        Big qx = multiplyBig(x1, makeBig(q));
+        Big qy = multiplyBig(y1, makeBig(q));
+
+        Big nx = subBig(x0, qx);
+        Big ny = subBig(y0, qy);
+
+        r0 = r1;
+        r1 = d.second;
+
+        x0 = x1;
+        x1 = nx;
+
+        y0 = y1;
+        y1 = ny;
+    }
+
+    if (A.neg)
+        x0 = negateBig(x0);
+
+    if (B.neg)
+        y0 = negateBig(y0);
+
+    return {r0, x0, y0};
+}
+
+// --------------------------------------------------
+// Modular addition
+// --------------------------------------------------
+Big modAdd(Big a, Big b, Big m, bool show = false)
+{
+    Big x = modBig(a, m);
+    Big y = modBig(b, m);
+
+    if (show)
+    {
+        cout << a.num << " mod " << m.num
+             << " = " << printBig(x) << "\n";
+
+        cout << b.num << " mod " << m.num
+             << " = " << printBig(y) << "\n";
+    }
+
+    return modBig(addBig(x, y), m);
+}
+
+// --------------------------------------------------
+// Modular multiplication
+// --------------------------------------------------
+Big modMultiply(
+    Big a,
+    Big b,
+    Big m,
+    bool show = false)
+{
+    Big current = modBig(a, m);
+    string multiplier = b.num;
+
+    if (b.neg)
+        current = negateBig(current);
+
+    Big ans = makeBig("0");
 
     while (multiplier != "0")
     {
-        char last = multiplier.back();
+        auto p = div2(multiplier);
 
-        bool odd =
-            last == '1' ||
-            last == '3' ||
-            last == '5' ||
-            last == '7' ||
-            last == '9';
-
-        if (odd)
-            ans = add(ans, current);
-
-        current = add(current, current);
-
-        // Divide multiplier by 2
-        string quotient = "";
-        int carry = 0;
-
-        for (char c : multiplier)
+        if (show)
         {
-            int num = carry * 10 + (c - '0');
-
-            quotient += char('0' + num / 2);
-
-            carry = num % 2;
+            cout << "Current = "
+                 << printBig(current)
+                 << ", Multiplier = "
+                 << multiplier << "\n";
         }
 
-        multiplier = clean(quotient);
+        if (p.second == 1)
+        {
+            ans = modAdd(ans, current, m);
+
+            if (show)
+                cout << "Add -> Answer = "
+                     << printBig(ans) << "\n";
+        }
+
+        current = modAdd(current, current, m);
+        multiplier = p.first;
     }
 
-    return {
-        ans,
-        a.negative
-    };
+    return ans;
 }
 
 // --------------------------------------------------
-// EXTENDED EUCLIDEAN GCD
+// Modular exponentiation
+//
+// Example:
+// 3^13 mod 7
+//
+// 13 odd -> answer = 3
+// square 3 -> 2
+// 6 even
+// square 2 -> 4
+// 3 odd -> answer = 5
+// square 4 -> 2
+// 1 odd -> answer = 3
+//
+// Result = 3
 // --------------------------------------------------
-
-struct Extended
+Big modPower(
+    Big base,
+    Big exponent,
+    Big m,
+    bool show = false)
 {
-    string gcd;
-    Signed x;
-    Signed y;
-};
+    if (exponent.neg)
+        throw runtime_error("Exponent must be non-negative");
 
-Extended extendedGCD(string a, string b)
-{
-    // Remainders
-    string r1 = a;
-    string r2 = b;
+    Big ans = modBig(makeBig("1"), m);
+    Big current = modBig(base, m);
 
-    // x coefficients
-    Signed x1 = {"1", false};
-    Signed x2 = {"0", false};
+    string e = exponent.num;
 
-    // y coefficients
-    Signed y1 = {"0", false};
-    Signed y2 = {"1", false};
-
-    while (r2 != "0")
+    while (e != "0")
     {
-        // r1 = q*r2 + remainder
-        pair<string, string> d = divide(r1, r2);
+        auto p = div2(e);
 
-        string q = d.first;
-        string remainder = d.second;
+        if (show)
+        {
+            cout << "Exponent = " << e
+                 << ", Base = " << printBig(current)
+                 << ", Answer = " << printBig(ans)
+                 << "\n";
+        }
 
-        // new x = x1 - q*x2
-        Signed nx =
-            subSigned(
-                x1,
-                multiplySigned(x2, q)
-            );
+        if (p.second == 1)
+        {
+            ans = modMultiply(ans, current, m);
 
-        // new y = y1 - q*y2
-        Signed ny =
-            subSigned(
-                y1,
-                multiplySigned(y2, q)
-            );
+            if (show)
+                cout << "Multiply -> Answer = "
+                     << printBig(ans) << "\n";
+        }
 
-        // Shift remainders
-        r1 = r2;
-        r2 = remainder;
+        current = modMultiply(current, current, m);
 
-        // Shift x
-        x1 = x2;
-        x2 = nx;
-
-        // Shift y
-        y1 = y2;
-        y2 = ny;
+        e = p.first;
     }
 
-    return {
-        r1,
-        x1,
-        y1
-    };
+    return ans;
 }
 
 // --------------------------------------------------
-// PRINT SIGNED NUMBER
+// Modular inverse
 // --------------------------------------------------
-
-void printSigned(Signed a)
+Big modInverse(Big a, Big m, bool show = false)
 {
-    if (a.negative && a.n != "0")
-        cout << "-";
+    Extended e = extendedGCD(a, m, show);
 
-    cout << a.n;
+    if (e.g != "1")
+        throw runtime_error(
+            "Modular inverse does not exist"
+        );
+
+    return modBig(e.x, m);
 }
 
-// --------------------------------------------------
-// EXECUTE OPERATION HELPER
-// --------------------------------------------------
 
-void runOperation(int choice, const string& a, const string& b)
-{
-    // Addition
-    if (choice == 1)
-    {
-        cout << "Answer = " << add(a, b) << "\n";
-    }
-    // Subtraction
-    else if (choice == 2)
-    {
-        if (cmp(a, b) < 0)
-        {
-            cout << "For this program, a must be >= b.\n";
-        }
-        else
-        {
-            cout << "Answer = " << sub(a, b) << "\n";
-        }
-    }
-    // Multiplication
-    else if (choice == 3)
-    {
-        cout << "Answer = " << multiply(a, b) << "\n";
-    }
-    // Division
-    else if (choice == 4)
-    {
-        if (clean(b) == "0")
-        {
-            cout << "Division by zero is not allowed.\n";
-        }
-        else
-        {
-            pair<string, string> ans = divide(a, b);
-            cout << "Quotient = " << ans.first << "\n";
-            cout << "Remainder = " << ans.second << "\n";
-        }
-    }
-    // GCD
-    else if (choice == 5)
-    {
-        cout << "GCD = " << gcd(a, b) << "\n";
-    }
-    // Extended GCD
-    else if (choice == 6)
-    {
-        Extended ans = extendedGCD(a, b);
-        cout << "GCD = " << ans.gcd << "\n";
-        cout << "x = ";
-        printSigned(ans.x);
-        cout << "\ny = ";
-        printSigned(ans.y);
-        cout << "\n";
-    }
-    else
-    {
-        cout << "Invalid choice.\n";
-    }
-}
-
-// Map textual operation name to numeric choice
-int parseOperationChoice(const string& op)
-{
-    if (op == "1" || op == "add" || op == "addition") return 1;
-    if (op == "2" || op == "sub" || op == "subtraction") return 2;
-    if (op == "3" || op == "mul" || op == "multiply" || op == "multiplication") return 3;
-    if (op == "4" || op == "div" || op == "divide" || op == "division") return 4;
-    if (op == "5" || op == "gcd") return 5;
-    if (op == "6" || op == "extgcd" || op == "extended_gcd") return 6;
-    return -1;
-}
-
-// --------------------------------------------------
+// ==================================================
 // MAIN
-// --------------------------------------------------
+// ==================================================
 
-int main(int argc, char* argv[])
+int main()
 {
-    // If command-line arguments are passed: ./crypto <op> <a> <b>
-    if (argc >= 4)
-    {
-        int choice = parseOperationChoice(argv[1]);
-        if (choice == -1)
-        {
-            cout << "Invalid operation: " << argv[1] << "\n";
-            cout << "Supported operations: add, sub, mul, div, gcd, extgcd (or numbers 1 to 6)\n";
-            return 1;
-        }
-
-        string a = argv[2];
-        string b = argv[3];
-        runOperation(choice, a, b);
-        return 0;
-    }
-
-    // Default: Interactive menu mode
     while (true)
     {
-        cout << "\n";
-        cout << "========== BIG INTEGER CALCULATOR ==========\n";
-        cout << "1. Addition\n";
-        cout << "2. Subtraction\n";
-        cout << "3. Multiplication\n";
-        cout << "4. Division\n";
-        cout << "5. Euclidean GCD\n";
-        cout << "6. Extended Euclidean GCD\n";
+        cout << "\n==============================\n";
+        cout << "BIG INTEGER CALCULATOR\n";
+        cout << "==============================\n";
+
+        cout << "1. GCD\n";
+        cout << "2. Extended GCD\n";
+        cout << "3. Modular Inverse\n";
+        cout << "4. Modular Addition\n";
+        cout << "5. Modular Multiplication\n";
+        cout << "6. Modular Exponentiation\n";
         cout << "0. Exit\n";
 
-        cout << "Enter choice: ";
-
         int choice;
-        if (!(cin >> choice))
-            break;
+        cout << "\nEnter choice: ";
+        cin >> choice;
 
         if (choice == 0)
             break;
 
-        string a, b;
-        cout << "Enter a: ";
-        cin >> a;
+        string a, b, m;
+        char show;
 
-        cout << "Enter b: ";
-        cin >> b;
+        try
+        {
+            if (choice == 1)
+            {
+                cout << "Enter a: ";
+                cin >> a;
 
-        runOperation(choice, a, b);
+                cout << "Enter b: ";
+                cin >> b;
+
+                cout << "Show steps? (y/n): ";
+                cin >> show;
+
+                Big A = makeBig(a);
+                Big B = makeBig(b);
+
+                if (A.num == "0" && B.num == "0")
+                    throw runtime_error(
+                        "GCD(0,0) is undefined"
+                    );
+
+                cout << "\nGCD = "
+                     << gcd(
+                            A,
+                            B,
+                            show == 'y' || show == 'Y'
+                        )
+                     << "\n";
+            }
+
+            else if (choice == 2)
+            {
+                cout << "Enter a: ";
+                cin >> a;
+
+                cout << "Enter b: ";
+                cin >> b;
+
+                cout << "Show steps? (y/n): ";
+                cin >> show;
+
+                Big A = makeBig(a);
+                Big B = makeBig(b);
+
+                if (A.num == "0" && B.num == "0")
+                    throw runtime_error(
+                        "Extended GCD(0,0) is undefined"
+                    );
+
+                Extended e =
+                    extendedGCD(
+                        A,
+                        B,
+                        show == 'y' || show == 'Y'
+                    );
+
+                cout << "\nGCD = " << e.g << "\n";
+                cout << "x = " << printBig(e.x) << "\n";
+                cout << "y = " << printBig(e.y) << "\n";
+            }
+
+            else if (choice == 3)
+            {
+                cout << "Enter a: ";
+                cin >> a;
+
+                cout << "Enter modulus: ";
+                cin >> m;
+
+                cout << "Show steps? (y/n): ";
+                cin >> show;
+
+                Big ans =
+                    modInverse(
+                        makeBig(a),
+                        makeBig(m),
+                        show == 'y' || show == 'Y'
+                    );
+
+                cout << "\nInverse = "
+                     << printBig(ans)
+                     << "\n";
+            }
+
+            else if (choice == 4)
+            {
+                cout << "Enter a: ";
+                cin >> a;
+
+                cout << "Enter b: ";
+                cin >> b;
+
+                cout << "Enter modulus: ";
+                cin >> m;
+
+                cout << "Show steps? (y/n): ";
+                cin >> show;
+
+                Big ans =
+                    modAdd(
+                        makeBig(a),
+                        makeBig(b),
+                        makeBig(m),
+                        show == 'y' || show == 'Y'
+                    );
+
+                cout << "\nAnswer = "
+                     << printBig(ans)
+                     << "\n";
+            }
+
+            else if (choice == 5)
+            {
+                cout << "Enter a: ";
+                cin >> a;
+
+                cout << "Enter b: ";
+                cin >> b;
+
+                cout << "Enter modulus: ";
+                cin >> m;
+
+                cout << "Show steps? (y/n): ";
+                cin >> show;
+
+                Big ans =
+                    modMultiply(
+                        makeBig(a),
+                        makeBig(b),
+                        makeBig(m),
+                        show == 'y' || show == 'Y'
+                    );
+
+                cout << "\nAnswer = "
+                     << printBig(ans)
+                     << "\n";
+            }
+
+            else if (choice == 6)
+            {
+                cout << "Enter base: ";
+                cin >> a;
+
+                cout << "Enter exponent: ";
+                cin >> b;
+
+                cout << "Enter modulus: ";
+                cin >> m;
+
+                cout << "Show steps? (y/n): ";
+                cin >> show;
+
+                Big ans =
+                    modPower(
+                        makeBig(a),
+                        makeBig(b),
+                        makeBig(m),
+                        show == 'y' || show == 'Y'
+                    );
+
+                cout << "\nAnswer = "
+                     << printBig(ans)
+                     << "\n";
+            }
+
+            else
+            {
+                cout << "Invalid choice.\n";
+            }
+        }
+        catch (exception &e)
+        {
+            cout << "\nError: "
+                 << e.what() << "\n";
+        }
     }
 
     return 0;
