@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cryptography Lab Calculator</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --text: #0f172a;
+      --muted: #64748b;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --result-bg: #f1f5f9;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-family);
+      line-height: 1.5;
+      padding: 32px 16px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 680px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 28px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .header {
+      text-align: center;
+      padding-bottom: 18px;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 22px;
+    }
+
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+
+    label {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .meta-info {
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-family: var(--font-mono);
+    }
+
+    textarea, input[type="text"] {
+      width: 100%;
+      padding: 9px 12px;
+      font-size: 0.875rem;
+      font-family: var(--font-mono);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--text);
+      resize: vertical;
+      word-break: break-all;
+    }
+
+    textarea:focus, input[type="text"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .options-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 10px 0 16px 0;
+      padding: 8px 12px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.85rem;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      color: #334155;
+    }
+
+    .btn-group-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin: 14px 0 6px 0;
+    }
+
+    .grid-buttons {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .grid-buttons-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 9px 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background-color: #ffffff;
+      color: var(--text);
+      transition: all 0.15s ease-in-out;
+      text-align: center;
+    }
+
+    .btn:hover {
+      background-color: #f8fafc;
+      border-color: #94a3b8;
+    }
+
+    .btn-op.active {
+      background-color: var(--primary);
+      border-color: var(--primary);
+      color: #ffffff;
+    }
+
+    .section-divider {
+      border: 0;
+      height: 1px;
+      background: var(--border);
+      margin: 22px 0 16px 0;
+    }
+
+    .section-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+
+    .result-container {
+      background: var(--result-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      min-height: 90px;
+      word-break: break-all;
+    }
+
+    .result-item {
+      margin-bottom: 12px;
+    }
+
+    .result-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .result-key {
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 4px;
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .result-val {
+      color: var(--text);
+      background: #ffffff;
+      padding: 8px 12px;
+      border-radius: 4px;
+      border: 1px solid #e2e8f0;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+
+    .steps-box {
+      margin-top: 10px;
+      background: #1e293b;
+      color: #f8fafc;
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      max-height: 200px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      line-height: 1.4;
+    }
+
+    .placeholder-text {
+      color: var(--muted);
+      font-style: italic;
+      font-family: var(--font-family);
+    }
+
+    .exp-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+    }
+
+    .exp-table th, .exp-table td {
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      text-align: center;
+    }
+
+    .exp-table th {
+      background: #f1f5f9;
+      font-weight: 700;
+      font-family: var(--font-family);
+    }
+
+    .exp-note {
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-family: var(--font-family);
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>Cryptography Lab Calculator</h1>
+  </div>
+
+  <!-- Inputs -->
+  <div class="form-group">
+    <div class="label-row">
+      <label for="num1">First Number (a / base)</label>
+      <span class="meta-info" id="num1-digits"></span>
+    </div>
+    <textarea id="num1" rows="2" placeholder="Enter first number a (e.g. 48 or 3)"></textarea>
+  </div>
+
+  <div class="form-group">
+    <div class="label-row">
+      <label for="num2">Second Number (b / exponent)</label>
+      <span class="meta-info" id="num2-digits"></span>
+    </div>
+    <textarea id="num2" rows="2" placeholder="Enter second number b (e.g. 18 or 13)"></textarea>
+  </div>
+
+  <div class="form-group">
+    <div class="label-row">
+      <label for="modulus">Modulus (m) <span style="font-weight: normal; color: var(--muted);">(for modular operations)</span></label>
+      <span class="meta-info" id="mod-digits"></span>
+    </div>
+    <input type="text" id="modulus" placeholder="Enter modulus m (e.g. 7 or 11)">
+  </div>
+
+  <!-- Operation Buttons -->
+  <div class="btn-group-label">Core Lab Operations (C++ Match)</div>
+  <div class="grid-buttons-3">
+    <button type="button" class="btn btn-op" data-op="gcd" onclick="executeOperation('gcd')">1. GCD (a, b)</button>
+    <button type="button" class="btn btn-op" data-op="extgcd" onclick="executeOperation('extgcd')">2. Extended GCD</button>
+    <button type="button" class="btn btn-op" data-op="modinv" onclick="executeOperation('modinv')">3. Modular Inverse</button>
+  </div>
+
+  <div class="grid-buttons-3" style="margin-top: 4px;">
+    <button type="button" class="btn btn-op" data-op="modadd" onclick="executeOperation('modadd')">4. Mod Addition</button>
+    <button type="button" class="btn btn-op" data-op="modmul" onclick="executeOperation('modmul')">5. Mod Multiplication</button>
+    <button type="button" class="btn btn-op" data-op="modpower" onclick="executeOperation('modpower')">6. Mod Exponentiation</button>
+  </div>
+
+  <div class="btn-group-label">Arithmetic & Modulo (%)</div>
+  <div class="grid-buttons">
+    <button type="button" class="btn btn-op" data-op="add" onclick="executeOperation('add')">Addition (a + b)</button>
+    <button type="button" class="btn btn-op" data-op="sub" onclick="executeOperation('sub')">Subtraction (a - b)</button>
+    <button type="button" class="btn btn-op" data-op="mul" onclick="executeOperation('mul')">Multiplication (a * b)</button>
+    <button type="button" class="btn btn-op" data-op="div" onclick="executeOperation('div')">Division (a / b)</button>
+  </div>
+
+  <div class="grid-buttons" style="margin-top: 4px;">
+    <button type="button" class="btn btn-op" data-op="mod" onclick="executeOperation('mod')" style="grid-column: span 2; background-color: #eff6ff; border-color: #bfdbfe; color: #1d4ed8;">
+      Mathematical Modulo: a % b (supports negative a and b)
+    </button>
+  </div>
+
+  <div class="btn-group-label">Experiment: Naive vs Square-and-Multiply</div>
+  <div class="grid-buttons" style="margin-top: 4px;">
+    <button type="button" class="btn" id="compareExpBtn" onclick="runExponentiationComparison()" style="grid-column: span 2; background-color: #ecfdf5; border-color: #a7f3d0; color: #047857;">
+      Compare Exponentiation Time
+    </button>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- Result Section -->
+  <div class="section-title">Result</div>
+  <div class="result-container" id="resultDisplay">
+    <span class="placeholder-text">Enter values and click an operation to compute.</span>
+  </div>
+</div>
+
+<script>
+  // ================================================================
+  // EXACT JAVASCRIPT PORT OF THE FRIEND'S C++ IMPLEMENTATION
+  // ================================================================
+
+  function clean(s) {
+    let i = 0;
+    while (i + 1 < s.length && s[i] === '0')
+      i++;
+    return s.substring(i);
+  }
+
+  function compare(a, b) {
+    a = clean(a);
+    b = clean(b);
+
+    if (a.length !== b.length)
+      return a.length > b.length ? 1 : -1;
+
+    if (a === b)
+      return 0;
+
+    return a > b ? 1 : -1;
+  }
+
+  function add(a, b) {
+    let i = a.length - 1;
+    let j = b.length - 1;
+    let carry = 0;
+    let ans = [];
+
+    while (i >= 0 || j >= 0 || carry) {
+      let x = (i >= 0) ? (a.charCodeAt(i) - 48) : 0;
+      let y = (j >= 0) ? (b.charCodeAt(j) - 48) : 0;
+      let sum = x + y + carry;
+
+      ans.push(String.fromCharCode(48 + (sum % 10)));
+      carry = Math.floor(sum / 10);
+
+      i--;
+      j--;
+    }
+
+    ans.reverse();
+    return clean(ans.join(''));
+  }
+
+  function sub(a, b) {
+    let i = a.length - 1;
+    let j = b.length - 1;
+    let borrow = 0;
+    let ans = [];
+
+    while (i >= 0) {
+      let x = (a.charCodeAt(i) - 48) - borrow;
+      let y = (j >= 0) ? (b.charCodeAt(j) - 48) : 0;
+
+      if (x < y) {
+        x += 10;
+        borrow = 1;
+      } else {
+        borrow = 0;
+      }
+
+      ans.push(String.fromCharCode(48 + (x - y)));
+      i--;
+      j--;
+    }
+
+    ans.reverse();
+    return clean(ans.join(''));
+  }
+
+  function div2(a) {
+    let q = [];
+    let carry = 0;
+
+    for (let k = 0; k < a.length; k++) {
+      let x = carry * 10 + (a.charCodeAt(k) - 48);
+      q.push(String.fromCharCode(48 + Math.floor(x / 2)));
+      carry = x % 2;
+    }
+
+    return { q: clean(q.join('')), carry };
+  }
+
+  function multiply(a, b, log = null) {
+    let ans = "0";
+    let current = clean(a);
+    let multiplier = clean(b);
+
+    while (multiplier !== "0") {
+      let p = div2(multiplier);
+
+      if (log) {
+        let stepText = `Current = ${current}, Multiplier = ${multiplier}`;
+        if (p.carry === 1) {
+          ans = add(ans, current);
+          stepText += ` -> add current, Answer = ${ans}`;
+        }
+        log.push(stepText);
+      } else if (p.carry === 1) {
+        ans = add(ans, current);
+      }
+
+      current = add(current, current);
+      multiplier = p.q;
+    }
+
+    return clean(ans);
+  }
+
+  function dividePositive(a, b, log = null) {
+    let quotient = [];
+    let remainder = "0";
+
+    for (let k = 0; k < a.length; k++) {
+      let c = a[k];
+      if (remainder === "0")
+        remainder = c;
+      else
+        remainder += c;
+
+      remainder = clean(remainder);
+
+      let q = 0;
+      while (compare(remainder, b) >= 0) {
+        remainder = sub(remainder, b);
+        q++;
+      }
+
+      quotient.push(String.fromCharCode(48 + q));
+
+      if (log) {
+        log.push(`Digit ${c} -> quotient digit = ${q}, remainder = ${remainder}`);
+      }
+    }
+
+    return { quotient: clean(quotient.join('')), remainder: clean(remainder) };
+  }
+
+  function gcd(a, b, log = null) {
+    a = clean(a);
+    b = clean(b);
+
+    while (b !== "0") {
+      let d = dividePositive(a, b);
+      if (log) {
+        log.push(`${a} = ${b} * ${d.quotient} + ${d.remainder}`);
+      }
+      a = b;
+      b = d.remainder;
+    }
+
+    return a;
+  }
+
+  // Signed Number struct Big
+  function makeBig(s) {
+    s = s.trim();
+    let neg = false;
+    if (s.length > 0 && s[0] === '-') {
+      neg = true;
+      s = s.substring(1);
+    }
+    s = clean(s);
+    if (s === "0") neg = false;
+    return { num: s, neg };
+  }
+
+  function printBig(a) {
+    if (a.neg && a.num !== "0")
+      return "-" + a.num;
+    return a.num;
+  }
+
+  function addBig(a, b) {
+    if (a.neg === b.neg) {
+      return makeBig((a.neg ? "-" : "") + add(a.num, b.num));
+    }
+    let c = compare(a.num, b.num);
+    if (c === 0) return makeBig("0");
+    if (c > 0) return makeBig((a.neg ? "-" : "") + sub(a.num, b.num));
+    return makeBig((b.neg ? "-" : "") + sub(b.num, a.num));
+  }
+
+  function negateBig(a) {
+    if (a.num !== "0")
+      return { num: a.num, neg: !a.neg };
+    return a;
+  }
+
+  function subBig(a, b) {
+    return addBig(a, negateBig(b));
+  }
+
+  function multiplyBig(a, b, log = null) {
+    let result = multiply(a.num, b.num, log);
+    let neg = a.neg ^ b.neg;
+    if (result === "0") neg = false;
+    return makeBig((neg ? "-" : "") + result);
+  }
+
+  function divideBig(a, b, log = null) {
+    if (b.num === "0") throw new Error("Division by zero");
+    let d = dividePositive(a.num, b.num, log);
+    let qneg = a.neg ^ b.neg;
+    let rneg = a.neg;
+    if (d.quotient === "0") qneg = false;
+    if (d.remainder === "0") rneg = false;
+    return {
+      q: makeBig((qneg ? "-" : "") + d.quotient),
+      r: makeBig((rneg ? "-" : "") + d.remainder)
+    };
+  }
+
+  function modBig(a, m) {
+    if (m.num === "0") throw new Error("Modulo by zero");
+    let posM = { num: m.num, neg: false };
+    let d = divideBig(a, posM);
+    let r = d.r;
+    if (r.neg) {
+      r.neg = false;
+      r = subBig(posM, r);
+    }
+    return r;
+  }
+
+  function extendedGCD(A, B, log = null) {
+    let r0 = A.num;
+    let r1 = B.num;
+
+    let x0 = makeBig("1");
+    let x1 = makeBig("0");
+    let y0 = makeBig("0");
+    let y1 = makeBig("1");
+
+    while (r1 !== "0") {
+      let d = dividePositive(r0, r1);
+      let q = d.quotient;
+
+      if (log) {
+        log.push(`${r0} = ${r1} * ${q} + ${d.remainder}`);
+      }
+
+      let qx = multiplyBig(x1, makeBig(q));
+      let qy = multiplyBig(y1, makeBig(q));
+
+      let nx = subBig(x0, qx);
+      let ny = subBig(y0, qy);
+
+      r0 = r1;
+      r1 = d.remainder;
+
+      x0 = x1;
+      x1 = nx;
+
+      y0 = y1;
+      y1 = ny;
+    }
+
+    if (A.neg) x0 = negateBig(x0);
+    if (B.neg) y0 = negateBig(y0);
+
+    return { g: r0, x: x0, y: y0 };
+  }
+
+  function modAdd(a, b, m, log = null) {
+    let x = modBig(a, m);
+    let y = modBig(b, m);
+    if (log) {
+      log.push(`${a.num} mod ${m.num} = ${printBig(x)}`);
+      log.push(`${b.num} mod ${m.num} = ${printBig(y)}`);
+    }
+    return modBig(addBig(x, y), m);
+  }
+
+  function modMultiply(a, b, m, log = null) {
+    let current = modBig(a, m);
+    let multiplier = b.num;
+    if (b.neg) current = negateBig(current);
+
+    let ans = makeBig("0");
+
+    while (multiplier !== "0") {
+      let p = div2(multiplier);
+      if (log) {
+        log.push(`Current = ${printBig(current)}, Multiplier = ${multiplier}`);
+      }
+      if (p.carry === 1) {
+        ans = modAdd(ans, current, m);
+        if (log) {
+          log.push(`Add -> Answer = ${printBig(ans)}`);
+        }
+      }
+      current = modAdd(current, current, m);
+      multiplier = p.q;
+    }
+
+    return ans;
+  }
+
+  function modPower(base, exponent, m, log = null) {
+    if (exponent.neg) throw new Error("Exponent must be non-negative");
+
+    let ans = modBig(makeBig("1"), m);
+    let current = modBig(base, m);
+    let e = exponent.num;
+
+    while (e !== "0") {
+      let p = div2(e);
+      if (log) {
+        log.push(`Exponent = ${e}, Base = ${printBig(current)}, Answer = ${printBig(ans)}`);
+      }
+      if (p.carry === 1) {
+        ans = modMultiply(ans, current, m);
+        if (log) {
+          log.push(`Multiply -> Answer = ${printBig(ans)}`);
+        }
+      }
+      current = modMultiply(current, current, m);
+      e = p.q;
+    }
+
+    return ans;
+  }
+
+  function modInverse(a, m, log = null) {
+    let e = extendedGCD(a, m, log);
+    if (e.g !== "1") throw new Error("Modular inverse does not exist");
+    return modBig(e.x, m);
+  }
+
+  // ================================================================
+  // UI HANDLERS
+  // ================================================================
+
+  const num1Input = document.getElementById("num1");
+  const num2Input = document.getElementById("num2");
+  const modInput = document.getElementById("modulus");
+  const num1Digits = document.getElementById("num1-digits");
+  const num2Digits = document.getElementById("num2-digits");
+  const modDigits = document.getElementById("mod-digits");
+  const resultDisplay = document.getElementById("resultDisplay");
+
+  function sanitizeSignedInput(str) {
+    str = str.trim();
+    let isNeg = str.startsWith("-");
+    let digits = str.replace(/[^0-9]/g, "");
+    if (!digits) return "";
+    return isNeg && digits !== "0" ? "-" + digits : digits;
+  }
+
+  function updateDigitCounts() {
+    const val1 = sanitizeSignedInput(num1Input.value);
+    const val2 = sanitizeSignedInput(num2Input.value);
+    const valM = sanitizeSignedInput(modInput.value);
+    num1Digits.textContent = val1 ? `${val1.replace("-", "").length} digits` : "";
+    num2Digits.textContent = val2 ? `${val2.replace("-", "").length} digits` : "";
+    modDigits.textContent = valM ? `${valM.replace("-", "").length} digits` : "";
+  }
+
+  num1Input.addEventListener("input", updateDigitCounts);
+  num2Input.addEventListener("input", updateDigitCounts);
+  modInput.addEventListener("input", updateDigitCounts);
+
+  function executeOperation(op) {
+    document.querySelectorAll(".btn-op").forEach(btn => {
+      btn.classList.toggle("active", btn.getAttribute("data-op") === op);
+    });
+
+    let rawA = sanitizeSignedInput(num1Input.value);
+    let rawB = sanitizeSignedInput(num2Input.value);
+    let rawM = sanitizeSignedInput(modInput.value);
+
+    let log = null;
+
+    try {
+      // 1. GCD
+      if (op === "gcd") {
+        if (!rawA || !rawB) throw new Error("Please enter First Number a and Second Number b.");
+        let A = makeBig(rawA);
+        let B = makeBig(rawB);
+        if (A.num === "0" && B.num === "0") throw new Error("GCD(0,0) is undefined");
+        let ans = gcd(A.num, B.num, log);
+
+        renderResult("GCD", ans, log);
+      }
+      // 2. Extended GCD
+      else if (op === "extgcd") {
+        if (!rawA || !rawB) throw new Error("Please enter First Number a and Second Number b.");
+        let A = makeBig(rawA);
+        let B = makeBig(rawB);
+        if (A.num === "0" && B.num === "0") throw new Error("Extended GCD(0,0) is undefined");
+        let e = extendedGCD(A, B, log);
+
+        renderMultiResult([
+          { key: "GCD", val: e.g },
+          { key: "x", val: printBig(e.x) },
+          { key: "y", val: printBig(e.y) }
+        ], log);
+      }
+      // 3. Modular Inverse
+      else if (op === "modinv") {
+        let mVal = rawM || rawB;
+        if (!rawA || !mVal) throw new Error("Please enter number a and modulus m.");
+        let ans = modInverse(makeBig(rawA), makeBig(mVal), log);
+        renderResult(`Modular Inverse (${rawA}⁻¹ mod ${mVal})`, printBig(ans), log);
+      }
+      // 4. Modular Addition
+      else if (op === "modadd") {
+        if (!rawA || !rawB || !rawM) throw new Error("Please enter a, b, and modulus m.");
+        let ans = modAdd(makeBig(rawA), makeBig(rawB), makeBig(rawM), log);
+        renderResult(`Modular Addition ((${rawA} + ${rawB}) mod ${rawM})`, printBig(ans), log);
+      }
+      // 5. Modular Multiplication
+      else if (op === "modmul") {
+        if (!rawA || !rawB || !rawM) throw new Error("Please enter a, b, and modulus m.");
+        let ans = modMultiply(makeBig(rawA), makeBig(rawB), makeBig(rawM), log);
+        renderResult(`Modular Multiplication ((${rawA} * ${rawB}) mod ${rawM})`, printBig(ans), log);
+      }
+      // 6. Modular Exponentiation
+      else if (op === "modpower") {
+        if (!rawA || !rawB || !rawM) throw new Error("Please enter base a, exponent b, and modulus m.");
+        let ans = modPower(makeBig(rawA), makeBig(rawB), makeBig(rawM), log);
+        renderResult(`Modular Exponentiation (${rawA}<sup>${rawB}</sup> mod ${rawM})`, printBig(ans), log);
+      }
+      // Mathematical Modulo: a % b
+      else if (op === "mod") {
+        let divisor = rawM || rawB;
+        if (!rawA || !divisor) throw new Error("Please enter dividend a and divisor b.");
+        let ans = modBig(makeBig(rawA), makeBig(divisor));
+        renderResult(`Mathematical Modulo: ${rawA} % ${divisor}`, printBig(ans), log);
+      }
+      // Basic Addition
+      else if (op === "add") {
+        if (!rawA || !rawB) throw new Error("Please enter a and b.");
+        let ans = addBig(makeBig(rawA), makeBig(rawB));
+        renderResult("Addition", printBig(ans));
+      }
+      // Basic Subtraction
+      else if (op === "sub") {
+        if (!rawA || !rawB) throw new Error("Please enter a and b.");
+        let ans = subBig(makeBig(rawA), makeBig(rawB));
+        renderResult("Subtraction", printBig(ans));
+      }
+      // Basic Multiplication
+      else if (op === "mul") {
+        if (!rawA || !rawB) throw new Error("Please enter a and b.");
+        let ans = multiplyBig(makeBig(rawA), makeBig(rawB), log);
+        renderResult("Multiplication", printBig(ans), log);
+      }
+      // Basic Division
+      else if (op === "div") {
+        if (!rawA || !rawB) throw new Error("Please enter a and b.");
+        let ans = divideBig(makeBig(rawA), makeBig(rawB), log);
+        renderMultiResult([
+          { key: "Quotient", val: printBig(ans.q) },
+          { key: "Remainder", val: printBig(ans.r) }
+        ], log);
+      }
+    } catch (err) {
+      resultDisplay.innerHTML = `
+        <div class="result-item">
+          <span class="result-key" style="color: #dc2626;">Error</span>
+          <div class="result-val" style="color: #dc2626; border-color: #fca5a5;">${err.message}</div>
+        </div>`;
+    }
+  }
+
+  function renderResult(label, val, log = null) {
+    resultDisplay.innerHTML = `
+      <div class="result-item">
+        <span class="result-key">${label}</span>
+        <div class="result-val">${val}</div>
+      </div>
+      `;
+  }
+
+  function renderMultiResult(items, log = null) {
+    let itemsHtml = items.map(it => `
+      <div class="result-item">
+        <span class="result-key">${it.key}</span>
+        <div class="result-val">${it.val}</div>
+      </div>
+    `).join('');
+
+    resultDisplay.innerHTML = itemsHtml;
+  }
+
+  // ================================================================
+  // EXPERIMENT: NAIVE EXPONENTIATION vs SQUARE-AND-MULTIPLY
+  // Uses the SAME modMultiply / modPower implementation defined above.
+  // ================================================================
+
+  // Genuine naive exponentiation: result = (result * base) mod modulus,
+  // repeated `exponent` times. No repeated squaring here at all.
+  function naiveModPower(base, exponent, m) {
+    let ans = modBig(makeBig("1"), m);
+    let b = modBig(base, m);
+    for (let i = 0; i < exponent; i++) {
+      ans = modMultiply(ans, b, m);
+    }
+    return ans;
+  }
+
+  function renderComparisonTable(rows, stillRunning) {
+    let rowsHtml = rows.map(r => `
+      <tr>
+        <td>${r.exponent}</td>
+        <td>${r.naiveTime.toFixed(3)} ms</td>
+        <td>${r.sqmTime.toFixed(3)} ms</td>
+        <td>${r.diff.toFixed(3)} ms</td>
+      </tr>
+    `).join('');
+
+    let statusHtml = stillRunning
+      ? `<div class="exp-note">Running remaining exponents...</div>`
+      : `<div class="exp-note">Both methods produced identical results for every exponent (verified against base<sup>exponent</sup> mod 1000000007).</div>`;
+
+    resultDisplay.innerHTML = `
+      <div class="result-item">
+        <span class="result-key">Compare Exponentiation Time (base = 123456789, modulus = 1000000007)</span>
+        <div class="result-val" style="padding: 0; overflow-x: auto;">
+          <table class="exp-table">
+            <thead>
+              <tr>
+                <th>Exponent</th>
+                <th>Naive Time</th>
+                <th>Square-and-Multiply Time</th>
+                <th>Difference</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+        </div>
+        ${statusHtml}
+      </div>
+    `;
+  }
+
+  function runExponentiationComparison() {
+    const base = makeBig("123456789");
+    const modulus = makeBig("1000000007");
+    const exponents = [1000, 10000, 100000];
+
+    const btn = document.getElementById("compareExpBtn");
+    btn.disabled = true;
+    const originalLabel = btn.textContent;
+    btn.textContent = "Running...";
+
+    resultDisplay.innerHTML = `
+      <div class="result-item">
+        <span class="result-key">Experiment Running</span>
+        <div class="result-val">Computing naive vs square-and-multiply exponentiation for exponents 1000, 10000, and 100000. The largest exponent may take a few seconds since naive exponentiation performs 100000 real multiplications...</div>
+      </div>
+    `;
+
+    const rows = [];
+    let idx = 0;
+
+    // Defer so the "Running" message actually paints before the
+    // synchronous, potentially heavy computation begins.
+    setTimeout(function runNext() {
+      try {
+        if (idx >= exponents.length) {
+          renderComparisonTable(rows, false);
+          btn.disabled = false;
+          btn.textContent = originalLabel;
+          return;
+        }
+
+        const exponent = exponents[idx];
+
+        const naiveStart = performance.now();
+        const naiveResult = naiveModPower(base, exponent, modulus);
+        const naiveTime = performance.now() - naiveStart;
+
+        const sqmStart = performance.now();
+        const sqmResult = modPower(base, makeBig(String(exponent)), modulus);
+        const sqmTime = performance.now() - sqmStart;
+
+        const naiveStr = printBig(naiveResult);
+        const sqmStr = printBig(sqmResult);
+
+        if (naiveStr !== sqmStr) {
+          throw new Error(`Mismatch at exponent ${exponent}: naive = ${naiveStr}, square-and-multiply = ${sqmStr}. Aborting comparison as results disagree.`);
+        }
+
+        rows.push({
+          exponent: exponent,
+          naiveTime: naiveTime,
+          sqmTime: sqmTime,
+          diff: Math.abs(naiveTime - sqmTime)
+        });
+
+        idx++;
+        renderComparisonTable(rows, idx < exponents.length);
+        // Yield back to the browser between exponents so the UI can repaint.
+        setTimeout(runNext, 0);
+      } catch (err) {
+        resultDisplay.innerHTML = `
+          <div class="result-item">
+            <span class="result-key" style="color: #dc2626;">Error</span>
+            <div class="result-val" style="color: #dc2626; border-color: #fca5a5;">${err.message}</div>
+          </div>`;
+        btn.disabled = false;
+        btn.textContent = originalLabel;
+      }
+    }, 50);
+  }
+</script>
+
+</body>
+</html>
